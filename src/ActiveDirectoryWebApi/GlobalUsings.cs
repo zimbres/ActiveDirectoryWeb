@@ -1,0 +1,14 @@
+﻿global using ActiveDirectoryWebApi.Authentication;
+global using ActiveDirectoryWebApi.Configurations;
+global using ActiveDirectoryWebApi.Extensions;
+global using ActiveDirectoryWebApi.Models;
+global using ActiveDirectoryWebApi.Services;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.Filters;
+global using Microsoft.OpenApi.Models;
+global using System.ComponentModel;
+global using System.ComponentModel.DataAnnotations;
+global using System.DirectoryServices.Protocols;
+global using System.Net;
+global using System.Reflection;
+global using System.Runtime.InteropServices;

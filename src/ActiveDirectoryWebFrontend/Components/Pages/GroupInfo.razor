@@ -1,0 +1,88 @@
+﻿@page "/group-info"
+@inject IHttpClientFactory ClientFactory
+
+<MudPaper Class="pa-6 mx-auto mt-10" MaxWidth="900px" Elevation="4">
+
+    <MudText Typo="Typo.h4" Class="mb-4">Group Lookup</MudText>
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8">
+            <MudTextField @bind-Value="SearchGroup" Label="Enter group name" FullWidth="true" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GetGroup" Disabled="@IsLoading">
+                @(IsLoading ? "Searching..." : "Search")
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (Group != null)
+    {
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText Typo="Typo.subtitle1"><b>Name:</b> @Group.Name</MudText>
+                <MudText Typo="Typo.subtitle1"><b>Type:</b> @Group.Type</MudText>
+                <MudText Typo="Typo.subtitle1"><b>Distinguished Name:</b></MudText>
+                <MudText Class="ml-2">@Group.DistinguishedName</MudText>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard>
+            <MudCardContent>
+                <MudTable Items="Group.Members" Dense="true" Hover="false" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Members</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="User">@context</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCardContent>
+        </MudCard>
+    }
+    else if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@ErrorMessage</MudAlert>
+    }
+
+</MudPaper>
+
+@code {
+    private string SearchGroup { get; set; } = string.Empty;
+    private GroupModel? Group;
+    private bool IsLoading = false;
+    private string? ErrorMessage;
+
+    private async Task GetGroup()
+    {
+        if (string.IsNullOrWhiteSpace(SearchGroup))
+            return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+        Group = null;
+
+        try
+        {
+            var client = ClientFactory.CreateClient("Default");
+            var response = await client.PostAsync($"/group?group={SearchGroup}", new StringContent(""));
+
+            if (response.IsSuccessStatusCode)
+            {
+                Group = await response.Content.ReadFromJsonAsync<GroupModel>();
+            }
+            else
+            {
+                ErrorMessage = $"Group not found ({response.StatusCode})";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

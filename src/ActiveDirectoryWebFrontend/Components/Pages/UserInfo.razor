@@ -1,0 +1,125 @@
+﻿@page "/user-info"
+@inject IHttpClientFactory ClientFactory
+
+<MudPaper Class="pa-6 mx-auto mt-10" MaxWidth="900px" Elevation="4">
+
+    <MudText Typo="Typo.h4" Class="mb-4">User Lookup</MudText>
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8">
+            <MudTextField @bind-Value="SearchUser" Label="Enter username or email" FullWidth="true" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GetUser" Disabled="@IsLoading">
+                @(IsLoading ? "Searching..." : "Search")
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (User != null)
+    {
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle1"><b>Name:</b> @User.DisplayName</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>Email:</b> @User.Email</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>Logon Name:</b> @User.LogonName</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>SAM Account:</b> @User.SamAccountName</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle1"><b>Enabled:</b> @(User.Enabled ? "Yes" : "No")</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>Password Never Expires:</b> @(User.PasswordNeverExpire ? "Yes" : "No")</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>Password Expired:</b> @(User.PasswordExpired ? "Yes" : "No")</MudText>
+                        <MudText Typo="Typo.subtitle1"><b>Is Locked:</b> @(User.IsLocked ? "Yes" : "No")</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudExpansionPanels Elevation="0" Class="mt-6">
+            <MudExpansionPanel Text="Password Information">
+                <MudText><b>Last Set:</b> @User.PasswordLastSet</MudText>
+                <MudText><b>Expiration:</b> @User.PasswordExpiration</MudText>
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Account Expiration">
+                <MudText><b>Expired:</b> @(User.Expired ? "Yes" : "No")</MudText>
+                <MudText><b>Expiration Date:</b> @User.Expiration</MudText>
+                <MudText><b>Lockout Time:</b> @User.LockoutTime</MudText>
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Distinguished Name">
+                <MudText>@User.DistinguishedName</MudText>
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Groups">
+                <MudTable Items="User.Groups" Dense="true" Hover="false" Striped="true">
+                    <RowTemplate>
+                        <MudTd DataLabel="Group">@context</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+    else if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@ErrorMessage</MudAlert>
+    }
+
+</MudPaper>
+
+@code {
+    private string SearchUser { get; set; } = string.Empty;
+    private UserModel? User;
+    private bool IsLoading = false;
+    private string? ErrorMessage;
+
+
+    private async Task GetUser()
+    {
+        if (string.IsNullOrWhiteSpace(SearchUser))
+            return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+        User = null;
+
+        try
+        {
+            var client = ClientFactory.CreateClient("Default");
+            HttpResponseMessage response;
+
+            if (SearchUser.Contains("@"))
+            {
+                response = await client.PostAsync($"/email?email={SearchUser}", new StringContent(""));
+            }
+            else
+            {
+                response = await client.PostAsync($"/username?username={SearchUser}", new StringContent(""));
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                User = await response.Content.ReadFromJsonAsync<UserModel>();
+            }
+            else
+            {
+                ErrorMessage = $"User not found ({response.StatusCode})";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

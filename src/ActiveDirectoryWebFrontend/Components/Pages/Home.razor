@@ -1,0 +1,35 @@
+﻿@page "/"
+@inject IConfiguration Configuration
+@inject IHttpClientFactory ClientFactory
+
+<MudPaper Class="pa-6 mx-auto mt-10" MaxWidth="900px" Elevation="4">
+    <MudStack Direction="Row" AlignItems=AlignItems.Center Spacing="1">
+        <MudLink Href="@apiAddress" Target="_blank" Color="Color.Primary">
+            Api Version: @version
+        </MudLink>
+
+        <MudTooltip Text="@(health ? "Healthy" : "Unhealthy")">
+            <MudIcon Icon="@healthIcon" Color="@healthColor" Size=Size.Small />
+        </MudTooltip>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private Configuration configuration;
+    private string apiAddress;
+    private string? version;
+    private bool health;
+
+    private string healthIcon => health ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning;
+    private Color healthColor => health ? Color.Success : Color.Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        configuration = Configuration.GetSection("Configuration").Get<Configuration>();
+        apiAddress = $"{configuration.ApiBaseAddress}swagger";
+        var client = ClientFactory.CreateClient("Default");
+        var response = await client.GetFromJsonAsync<ApiResponse>($"{configuration.ApiBaseAddress}");
+        version = response?.Data.Version;
+        health = response?.Data.Health ?? false;
+    }
+}
