@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Aspire/">
+    <Project Path="src/ActiveDirectoryWeb.AppHost/ActiveDirectoryWeb.AppHost.csproj" />
+    <Project Path="src/ActiveDirectoryWeb.ServiceDefaults/ActiveDirectoryWeb.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/api.yml" />
+    <File Path=".github/workflows/web.yml" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/ActiveDirectoryWebApi/ActiveDirectoryWebApi.csproj" />
+  <Project Path="src/ActiveDirectoryWebFrontend/ActiveDirectoryWebFrontend.csproj" />
+</Solution>
