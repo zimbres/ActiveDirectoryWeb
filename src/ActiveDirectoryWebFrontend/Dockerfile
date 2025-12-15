@@ -1,22 +1,21 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS base
+USER $APP_UID
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/ActiveDirectoryWebFrontend/ActiveDirectoryWebFrontend.csproj", "src/ActiveDirectoryWebFrontend/"]
-RUN dotnet restore "./src/ActiveDirectoryWebFrontend/./ActiveDirectoryWebFrontend.csproj"
+RUN dotnet restore "./src/ActiveDirectoryWebFrontend/ActiveDirectoryWebFrontend.csproj"
 COPY . .
+WORKDIR "/src/src/ActiveDirectoryWebFrontend"
+RUN dotnet build "./ActiveDirectoryWebFrontend.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-ARG TARGETPLATFORM
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./ActiveDirectoryWebFrontend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    RID=linux-x64 ; \
-    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    RID=linux-arm64 ; \
-    elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
-    RID=linux-arm ; \
-    fi \
-    && dotnet publish "src/ActiveDirectoryWebFrontend/ActiveDirectoryWebFrontend.csproj" -c Release -o /app/publish -r $RID --self-contained false
-
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
-
-ENTRYPOINT ["./ActiveDirectoryWebFrontend"]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "ActiveDirectoryWebFrontend.dll"]
