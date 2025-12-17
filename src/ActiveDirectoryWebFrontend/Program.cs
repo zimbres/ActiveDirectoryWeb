@@ -1,7 +1,8 @@
+using Microsoft.AspNetCore.DataProtection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-
 builder.Services.AddMudServices();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 var options = builder.Configuration.GetSection("Configuration").Get<Configuration>();
@@ -9,6 +10,7 @@ builder.Services.AddHttpClient("Default", client =>
 {
     client.BaseAddress = options.ApiBaseAddress;
 });
+builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionFolder));
 
 var app = builder.Build();
 

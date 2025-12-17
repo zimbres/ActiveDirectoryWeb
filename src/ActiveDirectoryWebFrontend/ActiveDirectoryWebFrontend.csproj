@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>1.0.1.6</Version>
+    <Version>1.0.1.7</Version>
   </PropertyGroup>
 
 
@@ -18,5 +18,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ActiveDirectoryWeb.ServiceDefaults\ActiveDirectoryWeb.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="DataProtectionFolder\" />
   </ItemGroup>
 </Project>
