@@ -1,4 +1,5 @@
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+RUN apt update && apt install -y libldap-2.5-0
 USER $APP_UID
 WORKDIR /app
 
